@@ -1,0 +1,5 @@
+fastapi==0.110.0
+uvicorn==0.29.0
+boto3==1.36.12
+google.generativeai==0.8.4
+markdown==3.7

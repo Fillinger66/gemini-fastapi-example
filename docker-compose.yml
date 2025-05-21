@@ -1,0 +1,51 @@
+
+services:
+  localstack: # LocalStack service
+    image: localstack/localstack
+    container_name: localstack
+    environment: # Environment variables for LocalStack
+      - SERVICES=dynamodb,s3,apigateway,cloudwatch # Add other services as needed
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - TABLE_HISTORY=${TABLE_HISTORY}
+      - DYNAMODB_ENDPOINT=${DYNAMODB_ENDPOINT}
+    ports:
+      - "4566:4566"  # LocalStack API
+    volumes:
+      - "./localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
+    healthcheck: # Healthcheck for LocalStack
+      test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  gemini-api: # Gemini API service
+    build:
+      context: . # Context for the build
+      dockerfile: Dockerfile # Dockerfile to use
+      args: # Args to be passed to the Dockerfile
+        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+        AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+        AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+        TABLE_HISTORY: ${TABLE_HISTORY}
+        DYNAMODB_ENDPOINT: ${DYNAMODB_ENDPOINT}
+    container_name: gemini-api
+    depends_on:
+      - localstack
+    ports: # Ports to expose
+      - "8000:8000"
+    env_file: # Load environment variables from .env file
+      - .env
+    environment: # Environment variables for the container
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - DYNAMODB_ENDPOINT=${DYNAMODB_ENDPOINT}
+      - TABLE_HISTORY=${TABLE_HISTORY}
+    healthcheck: # Healthcheck for the Gemini API
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
