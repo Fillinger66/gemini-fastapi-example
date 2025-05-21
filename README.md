@@ -240,10 +240,10 @@ curl -X POST http://127.0.0.1:8000/chat/ \
 ## 🔐 .env File Example
 ### Create a .env file at the root of the project to securely manage environment variables:
 ```ini
-GEMINI_API_KEY=your_gemini_api_key
+GEMINI_API_KEY=<YOUR_API_KEY_HERE>
 AWS_ACCESS_KEY_ID=local
 AWS_SECRET_ACCESS_KEY=stack
-AWS_REGION=us-west-2
+AWS_DEFAULT_REGION=us-west-2
 TABLE_HISTORY=ChatHistory
 DYNAMODB_ENDPOINT=http://localstack:4566
 ```
@@ -426,10 +426,11 @@ FROM python:3.13.0-slim
 
 ## 🌍 **Environment Variables**
 ```dockerfile
-ENV AWS_ACCESS_KEY_ID=local
-ENV AWS_SECRET_ACCESS_KEY=stack
-ENV AWS_DEFAULT_REGION=us-west-2
-ENV TABLE_HISTORY=ChatHistory
+ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+ENV AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+ENV TABLE_HISTORY=${TABLE_HISTORY}
+ENV DYNAMODB_ENDPOINT=${DYNAMODB_ENDPOINT}
 ```
 **Sets up environment variables to interact with LocalStack and defines the default DynamoDB table.**
 
@@ -512,11 +513,12 @@ services:
     image: localstack/localstack
     container_name: localstack
     environment:
-      - SERVICES=dynamodb,s3,apigateway,cloudwatch
-      - DEFAULT_REGION=${AWS_REGION}
+      - SERVICES=dynamodb,s3,apigateway,cloudwatch # Add other services as needed
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - TABLE_HISTORY=${TABLE_HISTORY}
+      - DYNAMODB_ENDPOINT=${DYNAMODB_ENDPOINT}
     ports:
       - "4566:4566"
     volumes:
